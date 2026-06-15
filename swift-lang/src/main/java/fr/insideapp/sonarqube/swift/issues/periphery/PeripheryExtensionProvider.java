@@ -21,6 +21,7 @@ import fr.insideapp.sonarqube.apple.commons.ExtensionProvider;
 import fr.insideapp.sonarqube.swift.issues.periphery.mapper.PeripheryReportMapper;
 import fr.insideapp.sonarqube.swift.issues.periphery.parser.PeripheryReportParser;
 import fr.insideapp.sonarqube.swift.issues.periphery.runner.PeripheryRunner;
+import org.sonar.api.PropertyType;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
@@ -45,9 +46,22 @@ public class PeripheryExtensionProvider implements ExtensionProvider {
             .subCategory(CATEGORY)
             .build();
 
+    public static final String SKIP_KEY = "sonar.apple.periphery.skip";
+    private static final PropertyDefinition SKIP_PROPERTY = PropertyDefinition
+            .builder(SKIP_KEY)
+            .name("Skip Periphery analysis")
+            .description("Disables the Periphery (dead code) sensor. Useful when Periphery is run outside SonarQube, or to avoid failures from a stale Index Store.")
+            .defaultValue("false")
+            .type(PropertyType.BOOLEAN)
+            .onQualifiers(Qualifiers.PROJECT)
+            .category(APPLE_CATEGORY)
+            .subCategory(CATEGORY)
+            .build();
+
     public List<Object> extensions() {
         return Arrays.asList(
                 INDEX_STORE_PATH_PROPERTY,
+                SKIP_PROPERTY,
                 PeripheryRulesDefinition.class,
                 PeripheryRunner.class,
                 PeripheryReportParser.class,
@@ -59,6 +73,12 @@ public class PeripheryExtensionProvider implements ExtensionProvider {
     public Optional<String> indexStorePath(Configuration configuration) {
         return configuration
                 .get(INDEX_STORE_PATH_KEY);
+    }
+
+    public boolean skip(Configuration configuration) {
+        return configuration
+                .getBoolean(SKIP_KEY)
+                .orElse(false);
     }
 
 }

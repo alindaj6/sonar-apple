@@ -29,12 +29,16 @@ import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.sensor.Sensor;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class PeripherySensor implements Sensor {
+
+    private static final Logger LOGGER = Loggers.get(PeripherySensor.class);
 
     private final Swift swift;
     private final PeripheryRulesDefinition rulesDefinition;
@@ -67,6 +71,10 @@ public class PeripherySensor implements Sensor {
 
     @Override
     public void execute(SensorContext sensorContext) {
+        if (sensorContext.config().getBoolean(PeripheryExtensionProvider.SKIP_KEY).orElse(false)) {
+            LOGGER.info("Skipping Periphery analysis ({}=true).", PeripheryExtensionProvider.SKIP_KEY);
+            return;
+        }
         String output = runner.run();
         List<PeripheryIssue> issues = parser
                 .parse(output)
