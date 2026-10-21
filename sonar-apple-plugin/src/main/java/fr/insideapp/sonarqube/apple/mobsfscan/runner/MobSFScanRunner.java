@@ -42,4 +42,10 @@ public final class MobSFScanRunner extends MobSFScanRunnable {
         options.addAll(sonarProjectConfiguration.sources());
         return options.stream().toArray(String[]::new);
     }
+
+    // mobsfscan exits with 1 when it reports findings, which is not a failure to run
+    @Override
+    protected Integer[] exitCodes() {
+        return new Integer[]{0, 1};
+    }
 }
